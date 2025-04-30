@@ -1,13 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
+import useAuth from "../../hooks/useAuth";
 
 const UserForm = () => {
+  const { user } = useAuth();
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
     name: "",
   });
+
+  useEffect(() => {
+    if (user) {
+      setCredentials({
+        email: user.email || "",
+        password: "",
+        name: user.name || "",
+      });
+    }
+  }, [user]);
 
   const handleChange = (key: string, value: string) => {
     setCredentials({ ...credentials, [key]: value });
@@ -28,6 +40,7 @@ const UserForm = () => {
         label="Password"
         value={credentials.password}
         onChangeText={(value) => handleChange("password", value)}
+        secureTextEntry
       />
       <TextInput
         label="Name"

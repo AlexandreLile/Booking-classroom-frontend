@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 import useAuth from "../hooks/useAuth";
+import { useNavigation } from "@react-navigation/native";
 
 const SigninScreen = () => {
   const { signin } = useAuth();
+  const navigation = useNavigation();
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
@@ -20,20 +22,18 @@ const SigninScreen = () => {
   };
 
   return (
-    <View
-      style={{
-        display: "flex",
-        gap: 10,
-        padding: 20,
-      }}
-    >
-      <Text>Sign Screen</Text>
+    <View style={{ padding: 20, gap: 10 }}>
+      <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 20 }}>
+        Connexion
+      </Text>
 
       {/* input email */}
       <TextInput
         label="Email"
         value={credentials.email}
         onChangeText={(value) => handleChange("email", value)}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
       {/* input password */}
       <TextInput
@@ -43,8 +43,16 @@ const SigninScreen = () => {
         onChangeText={(value) => handleChange("password", value)}
       />
       {/* submit button */}
-      <Button onPress={handleSubmit} mode="contained">
-        Signin
+      <Button mode="contained" onPress={handleSubmit}>
+        Se connecter
+      </Button>
+
+      <Button
+        mode="text"
+        onPress={() => navigation.navigate("Signup")}
+        style={{ marginTop: 10 }}
+      >
+        Pas encore de compte ? S'inscrire
       </Button>
     </View>
   );

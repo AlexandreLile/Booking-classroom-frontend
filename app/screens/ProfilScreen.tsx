@@ -7,7 +7,7 @@ const ProfilScreen = () => {
   const { signout } = useAuth();
 
   return (
-    <View style={{ padding: 20 }}>
+    <View style={{ padding: 20, gap: 20 }}>
       <Text>Profil</Text>
 
       <UserForm />
