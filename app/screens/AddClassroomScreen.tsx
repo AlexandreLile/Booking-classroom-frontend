@@ -4,6 +4,7 @@ import { TextInput, Button, Text, Chip, Checkbox, Divider, Snackbar } from 'reac
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAuth from '../hooks/useAuth';
+import api from '../services/api.service';
 
 const AddClassroomScreen = () => {
   const navigation = useNavigation();
@@ -26,8 +27,7 @@ const AddClassroomScreen = () => {
 
   const fetchExistingEquipment = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/classrooms');
-      const data = await response.json();
+      const { data } = await api.get('/classrooms');
       // Extraire tous les équipements uniques de toutes les salles
       const allEquipment = Array.from(
         new Set(data.flatMap((classroom: { equipment: string[] }) => classroom.equipment))
@@ -78,13 +78,6 @@ const AddClassroomScreen = () => {
         return;
       }
 
-      // Récupérer le token depuis AsyncStorage
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        setError('Vous devez être connecté pour ajouter une salle');
-        return;
-      }
-
       const requestData = {
         name: name.trim(),
         capacity: parseInt(capacity),
@@ -94,33 +87,13 @@ const AddClassroomScreen = () => {
       console.log('Envoi des données:', requestData);
 
       try {
-        const response = await fetch('http://localhost:8000/api/classrooms', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify(requestData),
-        });
-
-        const data = await response.json();
+        const { data } = await api.post('/classrooms', requestData);
         console.log('Réponse du serveur:', data);
-
-        if (response.ok) {
-          navigation.goBack();
-        } else {
-          // Afficher le message d'erreur du serveur s'il existe
-          const errorMessage = data.error || data.message || 'Erreur lors de l\'ajout de la salle';
-          console.error('Erreur serveur:', errorMessage);
-          setError(errorMessage);
-        }
-      } catch (fetchError) {
-        console.error('Erreur de requête:', fetchError);
-        if (fetchError instanceof TypeError && fetchError.message === 'Failed to fetch') {
-          setError('Impossible de se connecter au serveur. Vérifiez votre connexion internet.');
-        } else {
-          setError('Une erreur est survenue lors de la communication avec le serveur');
-        }
+        navigation.goBack();
+      } catch (error: any) {
+        console.error('Erreur serveur:', error);
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Erreur lors de l\'ajout de la salle';
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Erreur complète:', error);

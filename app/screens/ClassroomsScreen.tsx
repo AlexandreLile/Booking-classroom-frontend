@@ -4,6 +4,7 @@ import { Card, Button, Chip, Searchbar, Portal, Modal, FAB } from "react-native-
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import useAuth from "../hooks/useAuth";
+import api from "../services/api.service";
 
 interface Classroom {
   id: number;
@@ -27,19 +28,14 @@ const ClassroomsScreen = () => {
   const [minCapacity, setMinCapacity] = useState<number | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [allEquipment, setAllEquipment] = useState<string[]>([]);
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN";
   const navigation = useNavigation<NavigationProp>();
 
-  // Récupérer tous les équipements uniques
-  const allEquipment = Array.from(
-    new Set(classrooms.flatMap((classroom) => classroom.equipment))
-  );
-
   const fetchAllClassrooms = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/classrooms");
-      const data = await response.json();
+      const { data } = await api.get("/classrooms");
       setClassrooms(data);
       setFilteredClassrooms(data);
     } catch (error) {
@@ -47,10 +43,24 @@ const ClassroomsScreen = () => {
     }
   };
 
-  // Rafraîchir les salles quand l'écran est focus
+  const fetchAllEquipment = async () => {
+    try {
+      const { data } = await api.get('/classrooms');
+      // Extraire tous les équipements uniques de toutes les salles
+      const allEquipment = Array.from(
+        new Set(data.flatMap((classroom: { equipment: string[] }) => classroom.equipment))
+      ) as string[];
+      setAllEquipment(allEquipment);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des équipements:', error);
+    }
+  };
+
+  // Rafraîchir les salles et les équipements quand l'écran est focus
   useFocusEffect(
     React.useCallback(() => {
       fetchAllClassrooms();
+      fetchAllEquipment();
     }, [])
   );
 

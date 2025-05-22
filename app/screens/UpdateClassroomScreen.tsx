@@ -4,6 +4,7 @@ import { TextInput, Button, Text, Chip, Checkbox, Divider, Snackbar } from 'reac
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAuth from '../hooks/useAuth';
+import api from '../services/api.service';
 
 interface RouteParams {
   classroom: {
@@ -37,8 +38,7 @@ const UpdateClassroomScreen = () => {
 
   const fetchExistingEquipment = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/classrooms');
-      const data = await response.json();
+      const { data } = await api.get('/classrooms');
       const allEquipment = Array.from(
         new Set(data.flatMap((classroom: { equipment: string[] }) => classroom.equipment))
       ) as string[];
@@ -82,28 +82,11 @@ const UpdateClassroomScreen = () => {
           onPress: async () => {
             try {
               setLoading(true);
-              const token = await AsyncStorage.getItem('token');
-              if (!token) {
-                setError('Vous devez être connecté pour supprimer une salle');
-                return;
-              }
-
-              const response = await fetch(`http://localhost:8000/api/classrooms/${classroom.id}`, {
-                method: 'DELETE',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                },
-              });
-
-              if (response.ok) {
-                navigation.goBack();
-              } else {
-                const data = await response.json();
-                setError(data.error || 'Erreur lors de la suppression de la salle');
-              }
-            } catch (error) {
+              await api.delete(`/classrooms/${classroom.id}`);
+              navigation.goBack();
+            } catch (error: any) {
               console.error('Erreur lors de la suppression:', error);
-              setError('Une erreur est survenue lors de la suppression de la salle');
+              setError(error.response?.data?.error || 'Une erreur est survenue lors de la suppression de la salle');
             } finally {
               setLoading(false);
             }
@@ -134,13 +117,6 @@ const UpdateClassroomScreen = () => {
         return;
       }
 
-      // Récupérer le token depuis AsyncStorage
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        setError('Vous devez être connecté pour modifier une salle');
-        return;
-      }
-
       const requestData = {
         name: name.trim(),
         capacity: parseInt(capacity),
@@ -150,32 +126,13 @@ const UpdateClassroomScreen = () => {
       console.log('Envoi des données:', requestData);
 
       try {
-        const response = await fetch(`http://localhost:8000/api/classrooms/${classroom.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify(requestData),
-        });
-
-        const data = await response.json();
+        const { data } = await api.put(`/classrooms/${classroom.id}`, requestData);
         console.log('Réponse du serveur:', data);
-
-        if (response.ok) {
-          navigation.goBack();
-        } else {
-          const errorMessage = data.error || data.message || 'Erreur lors de la modification de la salle';
-          console.error('Erreur serveur:', errorMessage);
-          setError(errorMessage);
-        }
-      } catch (fetchError) {
-        console.error('Erreur de requête:', fetchError);
-        if (fetchError instanceof TypeError && fetchError.message === 'Failed to fetch') {
-          setError('Impossible de se connecter au serveur. Vérifiez votre connexion internet.');
-        } else {
-          setError('Une erreur est survenue lors de la communication avec le serveur');
-        }
+        navigation.goBack();
+      } catch (error: any) {
+        console.error('Erreur serveur:', error);
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Erreur lors de la modification de la salle';
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Erreur complète:', error);
