@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, ScrollView } from "react-native";
 import { Card, Button, Chip, Searchbar, Portal, Modal, FAB } from "react-native-paper";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import useAuth from "../hooks/useAuth";
 
@@ -36,22 +36,27 @@ const ClassroomsScreen = () => {
     new Set(classrooms.flatMap((classroom) => classroom.equipment))
   );
 
-  useEffect(() => {
-    console.log("ClassroomsScreen useEffect");
-    fetchAllClassrooms();
-  }, []);
+  const fetchAllClassrooms = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/classrooms");
+      const data = await response.json();
+      setClassrooms(data);
+      setFilteredClassrooms(data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des salles:", error);
+    }
+  };
+
+  // Rafraîchir les salles quand l'écran est focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchAllClassrooms();
+    }, [])
+  );
 
   useEffect(() => {
     filterClassrooms();
   }, [classrooms, searchQuery, minCapacity, selectedEquipment]);
-
-  const fetchAllClassrooms = async () => {
-    const response = await fetch("http://localhost:8000/api/classrooms");
-    const data = await response.json();
-    console.log(data);
-    setClassrooms(data);
-    setFilteredClassrooms(data);
-  };
 
   const filterClassrooms = () => {
     let filtered = [...classrooms];

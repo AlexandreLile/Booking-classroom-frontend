@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import { StyleSheet, View, ScrollView, Alert } from 'react-native';
 import { TextInput, Button, Text, Chip, Checkbox, Divider, Snackbar } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -65,6 +65,52 @@ const UpdateClassroomScreen = () => {
     } else {
       setEquipment([...equipment, item]);
     }
+  };
+
+  const handleDelete = async () => {
+    Alert.alert(
+      'Confirmation',
+      'Êtes-vous sûr de vouloir supprimer cette salle ? Cette action est irréversible.',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const token = await AsyncStorage.getItem('token');
+              if (!token) {
+                setError('Vous devez être connecté pour supprimer une salle');
+                return;
+              }
+
+              const response = await fetch(`http://localhost:8000/api/classrooms/${classroom.id}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                },
+              });
+
+              if (response.ok) {
+                navigation.goBack();
+              } else {
+                const data = await response.json();
+                setError(data.error || 'Erreur lors de la suppression de la salle');
+              }
+            } catch (error) {
+              console.error('Erreur lors de la suppression:', error);
+              setError('Une erreur est survenue lors de la suppression de la salle');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleSubmit = async () => {
@@ -212,15 +258,27 @@ const UpdateClassroomScreen = () => {
           )}
         </View>
 
-        <Button
-          mode="contained"
-          onPress={handleSubmit}
-          style={styles.submitButton}
-          disabled={loading}
-          loading={loading}
-        >
-          Mettre à jour la salle
-        </Button>
+        <View style={styles.buttonContainer}>
+          <Button
+            mode="contained"
+            onPress={handleSubmit}
+            style={[styles.submitButton, styles.updateButton]}
+            disabled={loading}
+            loading={loading}
+          >
+            Mettre à jour la salle
+          </Button>
+
+          <Button
+            mode="contained"
+            onPress={handleDelete}
+            style={[styles.submitButton, styles.deleteButton]}
+            disabled={loading}
+            buttonColor="#ff4444"
+          >
+            Supprimer la salle
+          </Button>
+        </View>
       </View>
 
       <Snackbar
@@ -250,7 +308,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 24,
-    textAlign: 'center',
   },
   input: {
     marginBottom: 16,
@@ -260,20 +317,18 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
+    color: '#333',
   },
   existingEquipmentList: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 8,
     marginBottom: 16,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    marginBottom: 8,
   },
   equipmentText: {
     marginLeft: 8,
@@ -285,11 +340,11 @@ const styles = StyleSheet.create({
   equipmentInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
     marginBottom: 16,
   },
   equipmentTextInput: {
     flex: 1,
+    marginRight: 8,
     backgroundColor: 'white',
   },
   equipmentList: {
@@ -300,9 +355,17 @@ const styles = StyleSheet.create({
   equipmentChip: {
     marginBottom: 8,
   },
+  buttonContainer: {
+    gap: 16,
+  },
   submitButton: {
-    marginTop: 16,
+    marginTop: 8,
+  },
+  updateButton: {
     backgroundColor: '#007AFF',
+  },
+  deleteButton: {
+    backgroundColor: '#ff4444',
   },
 });
 
