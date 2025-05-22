@@ -15,9 +15,10 @@ interface Classroom {
 type RootStackParamList = {
   ReserveClassroom: { classroom: Classroom };
   AddClassroom: undefined;
+  UpdateClassroom: { classroom: Classroom };
 };
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ReserveClassroom' | 'AddClassroom'>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ReserveClassroom' | 'AddClassroom' | 'UpdateClassroom'>;
 
 const ClassroomsScreen = () => {
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
@@ -188,6 +189,15 @@ const ClassroomsScreen = () => {
               >
                 Réserver
               </Button>
+              {isAdmin && (
+                <Button 
+                  mode="outlined" 
+                  onPress={() => navigation.navigate('UpdateClassroom', { classroom })}
+                  style={styles.updateButton}
+                >
+                  Modifier
+                </Button>
+              )}
             </Card.Actions>
           </Card>
         ))}
@@ -305,6 +315,9 @@ const styles = StyleSheet.create({
   reserveButton: {
     marginLeft: 'auto',
     backgroundColor: '#007AFF',
+  },
+  updateButton: {
+    marginLeft: 8,
   },
   fab: {
     position: 'absolute',
