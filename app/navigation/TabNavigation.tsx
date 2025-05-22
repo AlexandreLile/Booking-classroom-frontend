@@ -30,6 +30,7 @@ const TabNavigation = () => {
 
       return <Ionicons name={iconName} size={size} color={color} />;
     },
+    headerShown: false
   });
 
   return (
@@ -37,10 +38,23 @@ const TabNavigation = () => {
       <Tab.Screen 
         name="Classrooms" 
         component={ClassroomStack}
-        options={{ headerShown: false }}
       />
-      <Tab.Screen name="Reservations" component={ReservationsScreen} />
-      <Tab.Screen name="Profil" component={ProfilScreen} />
+      <Tab.Screen 
+        name="Reservations" 
+        component={ReservationsScreen}
+        options={{
+          headerShown: true,
+          title: "Mes réservations"
+        }}
+      />
+      <Tab.Screen 
+        name="Profil" 
+        component={ProfilScreen}
+        options={{
+          headerShown: true,
+          title: "Mon profil"
+        }}
+      />
     </Tab.Navigator>
   );
 };

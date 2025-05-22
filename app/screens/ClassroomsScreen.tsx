@@ -207,6 +207,7 @@ const ClassroomsScreen = () => {
         <FAB
           icon="plus"
           style={styles.fab}
+          color="white"
           onPress={() => navigation.navigate('AddClassroom')}
         />
       )}

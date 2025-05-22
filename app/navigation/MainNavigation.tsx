@@ -20,7 +20,11 @@ const MainNavigation = () => {
             <Stack.Screen name="Signup" component={SignupScreen} />
           </>
         ) : (
-          <Stack.Screen name="Tab" component={TabNavigation} />
+          <Stack.Screen 
+            name="Tab" 
+            component={TabNavigation} 
+            options={{ headerShown: false }}
+          />
         )}
       </Stack.Navigator>
     </NavigationContainer>
