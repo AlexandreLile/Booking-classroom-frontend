@@ -86,8 +86,8 @@ export const getReservationById = async (c: Context) => {
 
 export const deleteReservation = async (c: Context) => {
   try {
-    const userId = c.get("userId");
-    if (!userId) {
+    const user = c.get("user");
+    if (!user) {
       return c.json({ error: "User not authenticated" }, 401);
     }
 
@@ -96,7 +96,7 @@ export const deleteReservation = async (c: Context) => {
       return c.json({ error: "Invalid reservation ID" }, 400);
     }
 
-    await ReservationService.deleteReservation(id, userId);
+    await ReservationService.deleteReservation(id, user.userId);
     return c.json({ message: "Reservation deleted successfully" });
   } catch (error) {
     console.error("Error deleting reservation:", error);
