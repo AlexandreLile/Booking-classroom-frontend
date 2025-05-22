@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View, ScrollView } from "react-native";
-import { Card, Button, Chip, Searchbar, Portal, Modal } from "react-native-paper";
+import { Card, Button, Chip, Searchbar, Portal, Modal, FAB } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useAuth from "../hooks/useAuth";
 
 interface Classroom {
   id: number;
@@ -13,9 +14,10 @@ interface Classroom {
 
 type RootStackParamList = {
   ReserveClassroom: { classroom: Classroom };
+  AddClassroom: undefined;
 };
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ReserveClassroom'>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'ReserveClassroom' | 'AddClassroom'>;
 
 const ClassroomsScreen = () => {
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
@@ -24,6 +26,8 @@ const ClassroomsScreen = () => {
   const [minCapacity, setMinCapacity] = useState<number | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
   const navigation = useNavigation<NavigationProp>();
 
   // Récupérer tous les équipements uniques
@@ -188,6 +192,14 @@ const ClassroomsScreen = () => {
           </Card>
         ))}
       </ScrollView>
+
+      {isAdmin && (
+        <FAB
+          icon="plus"
+          style={styles.fab}
+          onPress={() => navigation.navigate('AddClassroom')}
+        />
+      )}
     </View>
   );
 };
@@ -292,6 +304,13 @@ const styles = StyleSheet.create({
   },
   reserveButton: {
     marginLeft: 'auto',
+    backgroundColor: '#007AFF',
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
     backgroundColor: '#007AFF',
   },
 });
