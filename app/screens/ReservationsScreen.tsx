@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, ScrollView, RefreshControl } from 'react-native';
-import { Card, Text, Button } from 'react-native-paper';
-import { format } from 'date-fns';
+import { Card, Text, Button, Chip } from 'react-native-paper';
+import { format, isPast } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ReservationService from '../services/reservationService';
 import { Reservation } from '../services/reservationService';
@@ -71,6 +71,10 @@ const ReservationsScreen = () => {
     );
   };
 
+  const isReservationPast = (endTime: string) => {
+    return isPast(new Date(endTime));
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -101,6 +105,19 @@ const ReservationsScreen = () => {
               <Card.Title
                 title={reservation.classroom.name}
                 titleStyle={styles.cardTitle}
+                right={(props) => (
+                  <Chip
+                    mode="flat"
+                    style={[
+                      styles.statusChip,
+                      isReservationPast(reservation.endTime) 
+                        ? styles.pastChip 
+                        : styles.upcomingChip
+                    ]}
+                  >
+                    {isReservationPast(reservation.endTime) ? 'Passée' : 'À venir'}
+                  </Chip>
+                )}
               />
               <Card.Content>
                 <View style={styles.timeContainer}>
@@ -178,6 +195,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     padding: 16,
+  },
+  statusChip: {
+    marginRight: 16,
+  },
+  pastChip: {
+    backgroundColor: '#e0e0e0',
+  },
+  upcomingChip: {
+    backgroundColor: '#e3f2fd',
   },
 });
 
